@@ -1,0 +1,13 @@
+//Adresse hinzufügen
+CREATE (a:Address {
+  hash: "fe53d6eb3cea2889",
+  number: "38",
+  street: "Am Schloß Broich",
+  unit: "",
+  city: "Mülheim an der Ruhr",
+  district: "",
+  region: "",
+  postcode: "",
+  id: "",
+  coordinates: [6.8685579, 51.4280793]
+});
