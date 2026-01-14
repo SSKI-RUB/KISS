@@ -1,0 +1,5 @@
+1) Updated_OSM_Mülheim.geojson : Ausgangsdatei aus OSM mit zusätzlichen Eigenschaften
+Ausführen von clean_MH.py
+2) OSM_MH_streets_cleaned3.geojson : Gesäuberte Datei ohne Flüsse und Polygons (nur noch LineStrings, die Straßen sind)
+Ausführen von add_heights_new.py
+3) MH_OSM_heights_cleaned3.geojson : Datei aus 2) + Höhen aus den TIFFs per Punkt jeder Straße
