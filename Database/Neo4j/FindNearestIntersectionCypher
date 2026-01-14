@@ -1,0 +1,20 @@
+//find nearest intersection
+CALL apoc.periodic.iterate(
+  'MATCH (p:Address) WHERE NOT EXISTS ((p)-[:NEAREST_INTERSECTION]->(:Point)) RETURN p',
+  'CALL {
+  WITH p
+  MATCH (i:Point)
+  USING INDEX i:Point(location)
+  WHERE point.distance(i.location, p.location) < 200
+
+  WITH i
+  ORDER BY point.distance(p.location, i.location) ASC 
+  LIMIT 1
+  RETURN i
+}
+WITH p, i
+
+MERGE (p)-[r:NEAREST_INTERSECTION]->(i)
+SET r.length = point.distance(p.location, i.location)
+RETURN COUNT(p)',
+  {batchSize:10000, parallel:false})
