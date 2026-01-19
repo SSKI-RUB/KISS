@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Prototyp.Controls"
+             x:Class="Prototyp._7_Page_Treppen"
+             BackgroundColor="White">
+    
+    <ContentPage.Content>
+
+        <StackLayout Padding="20" Spacing="15">
+
+            <Label Text="Möchten Sie Treppen vermeiden?" 
+               FontAttributes="Bold" 
+               HorizontalTextAlignment="Center"
+               FontSize="Large" 
+               TextColor="#1E2D2B" />
+
+            
+            <StackLayout Padding="20" Spacing="25">
+                
+                <!-- Treppen einbeziehen = 1 -->
+                <controls:NoCapsButton Text="Ja, Treppen vermeiden."  
+                                   Clicked="OnTreppenOptionClicked"
+                                   x:Name="TreppenOption1"
+                                   BackgroundColor="#5B7C77"
+                                   TextColor="White"
+                                   CornerRadius="12"
+                                   FontAttributes="Bold"
+                                   FontSize="Medium"
+                                   HeightRequest="70"
+                                   Padding="20,10" />
+
+                <!-- Treppen ausschließen = 0 -->
+                <controls:NoCapsButton Text="Nein, Treppen sind kein Problem."
+                                   Clicked="OnTreppenOptionClicked"
+                                   x:Name="TreppenOption2"
+                                   BackgroundColor="#5B7C77"
+                                   TextColor="White"
+                                   CornerRadius="12"
+                                   FontSize="Medium"
+                                   FontAttributes="Bold"
+                                   HeightRequest="70"
+                                   Padding="20,10" />
+            </StackLayout>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

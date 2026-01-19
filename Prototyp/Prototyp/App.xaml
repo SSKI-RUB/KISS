@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Application xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Prototyp.App">
+    <Application.Resources>
+        <ResourceDictionary>
+
+            <!-- Implizite Standard-Styles (gelten automatisch für alle Controls dieses Typs) -->
+            <Style TargetType="ContentPage">
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=Black}" />
+            </Style>
+
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
+            </Style>
+
+            <Style TargetType="SearchBar">
+                <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
+                <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light=#777, Dark=#BBB}" />
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#F2F2F2, Dark=#1E1E1E}" />
+            </Style>
+
+            <Style TargetType="ListView">
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#121212}" />
+            </Style>
+
+            <Style TargetType="Button">
+                <Setter Property="TextColor" Value="{AppThemeBinding Light=White, Dark=White}" />
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#4CAF50, Dark=#2E7D32}" />
+            </Style>
+
+            <Style TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#1E1E1E}" />
+            </Style>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

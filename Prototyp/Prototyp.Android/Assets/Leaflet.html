@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%; /* Macht die Karte sichtbar */
+            margin: 0;
+            padding: 0;
+        }
+
+        .marker-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #666;
+        }
+        .user-heading-wrapper {
+            width: 44px;
+            height: 44px;
+            transform-origin: 50% 50%;
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+        }
+
+        .user-heading-svg {
+            width: 44px;
+            height: 44px;
+        }
+
+        /* kleiner Kreis als "Position" unter dem Pfeil */
+        .user-dot {
+            fill: #1e8fff;
+            stroke: white;
+            stroke-width: 2;
+            opacity: 0.95;
+        }
+
+        .user-arrow {
+            fill: #1e8fff;
+            stroke: white;
+            stroke-width: 2;
+            opacity: 0.95;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map').setView([51.4333, 6.8833], 13); //Mühlheim
+
+        var userMarker = null;
+        var userHeadingDeg = 0; // letzter bekannter Heading
+        var autoCenter = false;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: ''
+        }).addTo(map);
+
+        map.attributionControl.setPrefix(false); // entfernt "Leaflet" zeichen
+
+        function createUserIcon() {
+            // Einfaches SVG: Kreis + Dreieck (Pfeil zeigt nach oben = Norden)
+            const svg = `
+      <div class="user-heading-wrapper">
+        <svg class="user-heading-svg" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+          <!-- Position als Punkt -->
+          <circle class="user-dot" cx="22" cy="30" r="6"></circle>
+          <!-- Pfeil: Spitze nach oben (Norden) -->
+          <path class="user-arrow" d="M22 6 L30 22 L22 18 L14 22 Z"></path>
+        </svg>
+      </div>`;
+            return L.divIcon({
+                className: '',     // eigene Klassen stecken im HTML
+                html: svg,
+                iconSize: [44, 44],
+                iconAnchor: [22, 22] // Mitte = Drehzentrum
+            });
+        }
+
+        /**
+         * Aktualisiert User-Marker inkl. Rotation.
+         * @param {number} lat
+         * @param {number} lng
+         * @param {number|null|undefined} headingDeg - 0°=Norden, im Uhrzeigersinn (Kompass)
+         */
+
+        function updateUserMarker(lat, lng, headingDeg) {
+            if (typeof headingDeg === 'number' && !isNaN(headingDeg)) {
+                userHeadingDeg = headingDeg;
+            }
+
+            if (!userMarker) {
+                userMarker = L.marker([lat, lng], {
+                    icon: createUserIcon(),
+                    interactive: false
+                }).addTo(map);
+            } else {
+                userMarker.setLatLng([lat, lng]);
+            }
+
+            // Nur das innere Wrapper-DIV drehen, nicht das Leaflet-Icon selbst
+            const iconEl = userMarker.getElement();
+            if (iconEl) {
+                const wrapper = iconEl.querySelector('.user-heading-wrapper');
+                if (wrapper) {
+                    wrapper.style.transform = `rotate(${userHeadingDeg}deg)`;
+                    wrapper.style.transformOrigin = '22px 22px'; // passt zu iconAnchor
+                }
+            }
+
+            if (autoCenter) {
+                map.panTo([lat, lng]);
+            }
+        }
+
+
+        function addStartMarker(lat, lng) {
+            console.log("📍 Startpunkt-Marker setzen:", lat, ",", lng);
+
+            // Vorherigen Marker entfernen
+            if (window.startMarker) {
+                map.removeLayer(window.startMarker);
+            }
+
+            // Neuen Marker mit Tooltip setzen
+            window.startMarker = L.circleMarker([lat, lng], {
+                radius: 10,
+                fillColor: 'red',    
+                color: 'white',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).bindTooltip("Start", {
+                permanent: true,
+                direction: 'top',
+                offset: [0, -10],
+                className: 'marker-label'
+            }).addTo(map);
+        }
+
+        function addZielMarker(lat, lng) {
+            console.log("📍 Zielpunkt-Marker setzen:", lat, lng);
+
+            if (window.zielMarker) {
+                map.removeLayer(window.zielMarker);
+            }
+
+            window.zielMarker = L.circleMarker([lat, lng], {
+                radius: 10,
+                fillColor: 'green',      
+                color: 'white',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).bindTooltip("Ziel", {
+                permanent: true,
+                direction: 'top',
+                offset: [0, -10],
+                className: 'marker-label'
+            }).addTo(map);
+        }
+
+        function zoomToRouteAndMarkers() {
+            var layers = [];
+            if (window.routeLine) layers.push(window.routeLine);
+            if (window.startMarker) layers.push(window.startMarker);
+            if (window.zielMarker) layers.push(window.zielMarker);
+
+            if (layers.length > 0) {
+                var group = new L.featureGroup(layers);
+                map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 18 });
+                console.log("📍 Karte zoomt auf Route + Marker");
+            }
+        }
+
+        function addRoutePath(coords) {
+            console.log("📌 addRoutePath mit", coords.length, "Punkten");
+
+            // Falls eine alte Route existiert, löschen
+            if (window.routeLine) {
+                map.removeLayer(window.routeLine);
+                window.routeLine = null;
+            }
+
+            // Route als Polyline hinzufügen
+            window.routeLine = L.polyline(coords, {
+                color: '#ee2a2a',    // kräftiges Rot
+                weight: 8,           // seniorenfreundlich dick
+                opacity: 0.9
+            }).addTo(map);
+
+            // Karte an Route anpassen
+            map.fitBounds(window.routeLine.getBounds().pad(0.01), { maxZoom: 19 });
+        }
+
+        function clearRoutePath() {
+            if (window.routeLine) {
+                map.removeLayer(window.routeLine);
+                window.routeLine = null;
+                console.log("🧹 Route entfernt.");
+            }
+        }
+
+        function clearAllMarkers() {
+            if (window.startMarker) {
+                map.removeLayer(window.startMarker);
+                window.startMarker = null;
+            }
+            if (window.zielMarker) {
+                map.removeLayer(window.zielMarker);
+                window.zielMarker = null;
+            }
+            if (window.userMarker) {
+                map.removeLayer(window.userMarker);
+                window.userMarker = null;
+            }
+            console.log("🧹 Start- User- und Zielmarker entfernt.");
+        }
+
+        function clearUserMarker() {
+            if (window.userMarker) {
+                map.removeLayer(window.userMarker);
+                window.userMarker = null;
+                console.log("🧹 User-Marker entfernt.");
+            }
+        }
+
+        function clearPoiMarkers() {
+            if (window.poiMarkers) {
+                window.poiMarkers.forEach(marker => map.removeLayer(marker));
+                window.poiMarkers = [];
+                console.log("🧹 POI-Marker entfernt.");
+            }
+        }
+
+        function clearPoiMarkersOfType(type) {
+            if (!window.poiMarkers) return;
+
+            const remaining = [];
+
+            window.poiMarkers.forEach(marker => {
+                if (marker.options.title !== type) {
+                    remaining.push(marker);
+                } else {
+                    map.removeLayer(marker);
+                }
+            });
+
+            window.poiMarkers = remaining;
+        }
+
+        function zoomToMarkers() {
+            if (window.startMarker && window.zielMarker) {
+                var group = L.featureGroup([window.startMarker, window.zielMarker]);
+                map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 19 });
+            } else if (window.startMarker) {
+                map.setView(window.startMarker.getLatLng(), 17);
+            } else if (window.zielMarker) {
+                map.setView(window.zielMarker.getLatLng(), 17);
+            }
+        }
+
+        function zoomToAllMarkers() {
+            const markers = [];
+
+            if (window.startMarker) markers.push(window.startMarker);
+            if (window.zielMarker) markers.push(window.zielMarker);
+            if (window.userMarker) markers.push(window.userMarker);
+
+            if (markers.length > 0) {
+                const group = L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 19 });
+                console.log("📍 Karte zoomt auf alle Marker.");
+            }
+        }
+
+        function showPoiMarkers(poiList) {
+            // Bestehende POI-Marker entfernen, wenn vorhanden
+            if (window.poiMarkers) {
+                window.poiMarkers.forEach(marker => map.removeLayer(marker));
+            }
+            window.poiMarkers = [];
+
+            poiList.forEach(poi => {
+                const lat = poi.lat;
+                const lng = poi.lon;
+                const type = poi.poi_type;
+
+                // Farbe je nach Typ
+                let color = 'blue';
+                if (type === 'bench') color = 'purple';
+                if (type === 'toilet') color = 'orange';
+                if (type === 'shelter') color = 'brown';
+
+                const marker = L.circleMarker([lat, lng], {
+                    radius: 8,
+                    fillColor: color,
+                    color: 'white',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.9,
+                    title: type 
+                }).bindTooltip(type.charAt(0).toUpperCase() + type.slice(1), {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -10],
+                    className: 'marker-label'
+                }).addTo(map);
+
+                window.poiMarkers.push(marker);
+            });
+
+            console.log("✅ POI-Marker gesetzt:", poiList.length);
+        }
+
+        function setAutoCenter(enabled) {
+            autoCenter = enabled;
+            console.log("Auto-Center ist jetzt " + (enabled ? "AN" : "AUS"));
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             BackgroundColor="{AppThemeBinding Light=White, Dark=#2c2c2c}"
+             x:Class="Prototyp.MainPage">
+
+    <Grid RowSpacing="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <!-- Header -->
+            <RowDefinition Height="Auto" />
+            <!-- Adresseingabe -->
+            <RowDefinition Height="*" />
+            <!-- Karte -->
+            <RowDefinition Height="Auto" />
+            <!-- POI + Navigation -->
+        </Grid.RowDefinitions>
+
+        <!-- 📝 Header mit Route -->
+        <Grid x:Name="RouteHeader"
+              Grid.Row="0"
+              BackgroundColor="{AppThemeBinding Light=#f5f5f5, Dark=#2c2c2c}"
+              Padding="10"
+              ColumnDefinitions="*,Auto"
+              IsVisible="False">
+
+            <!-- Route Info -->
+            <Label x:Name="RouteHeaderLabel"
+                   Text=""
+                   FontSize="Small"
+                   VerticalOptions="Center"
+                   TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                   LineBreakMode="WordWrap" />
+        </Grid>
+
+        <!-- 🏁 Adresseingabe -->
+        <StackLayout x:Name="AddressInputLayout" Grid.Row="1" Padding="10" Spacing="10">
+            <SearchBar x:Name="StartSearchBar"
+                       BackgroundColor="{AppThemeBinding Light=#EEEEEE, Dark=#1F1F1F}"
+                       TextColor="{AppThemeBinding Light=#212121, Dark=White}"
+                       PlaceholderColor="{AppThemeBinding Light=#212121, Dark=#CCCCCC}"
+                       CancelButtonColor="{AppThemeBinding Light=#424242, Dark=White}"
+                       Placeholder="Startadresse eingeben"
+                       TextChanged="OnAddressSearchTextChanged"
+                       Focused="OnStartSearchFocused" />
+
+            <ListView x:Name="StartAddressList"
+                      IsVisible="False"
+                      BackgroundColor="White"
+                      ItemTapped="OnStartAddressSelected"
+                      HeightRequest="120">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Padding="10">
+                                <Label Text="{Binding}" TextColor="Black" FontSize="16"/>
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <SearchBar x:Name="ZielSearchBar"
+                       BackgroundColor="{AppThemeBinding Light=#EEEEEE, Dark=#1F1F1F}"
+                       TextColor="{AppThemeBinding Light=#212121, Dark=White}"
+                       PlaceholderColor="{AppThemeBinding Light=#212121, Dark=#CCCCCC}"
+                       CancelButtonColor="{AppThemeBinding Light=#424242, Dark=White}"
+                       Placeholder="Zieladresse eingeben"
+                       TextChanged="OnAddressSearchTextChanged"
+                       Focused="OnZielSearchFocused" />
+
+            <ListView x:Name="ZielAddressList"
+                      IsVisible="False"
+                      BackgroundColor="White"
+                      ItemTapped="OnZielAddressSelected"
+                      HeightRequest="120">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Padding="10">
+                                <Label Text="{Binding}" TextColor="Black" FontSize="16"/>
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackLayout>
+
+        <!-- 🗺️ Karte -->
+        <Grid Grid.Row="2">
+            <WebView x:Name="MapWebView"
+                     VerticalOptions="FillAndExpand"
+                     HorizontalOptions="FillAndExpand"
+                     Navigated="OnMapLoaded" />
+
+            <Button x:Name="AutoCenterToggleButton"
+                    Text="Wo bin ich: AN"
+                    BackgroundColor="#4e4e4e"
+                    TextColor="White"
+                    FontSize="12"
+                    CornerRadius="5"
+                    WidthRequest="150"
+                    HeightRequest="35"
+                    Clicked="OnAutoCenterToggled"
+                    HorizontalOptions="Start"
+                    VerticalOptions="End"
+                    Margin="15"
+                    IsVisible="false" />
+
+            <Button x:Name="ZoomToRouteButton"
+                    Text="Zur Route springen"
+                    BackgroundColor="#4e4e4e"
+                    TextColor="White"
+                    FontSize="12"
+                    CornerRadius="5"
+                    WidthRequest="150"
+                    HeightRequest="35"
+                    Clicked="OnZoomToRouteClicked"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Margin="15"
+                    IsVisible="false" />
+
+            <!-- Lade Overlay -->
+            <Grid x:Name="RouteLoadingOverlay"
+                  BackgroundColor="#80000000"
+                  IsVisible="False"
+                  VerticalOptions="FillAndExpand"
+                  HorizontalOptions="FillAndExpand">
+                <Frame BackgroundColor="White"
+                       CornerRadius="12"
+                       Padding="25"
+                       HasShadow="True"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center">
+                    <StackLayout Spacing="15">
+                        <ActivityIndicator IsRunning="True"
+                                           Color="Green"
+                                           WidthRequest="60"
+                                           HeightRequest="60" />
+                        <Label Text="Route laden..."
+                               TextColor="Black"
+                               FontSize="Medium"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="Center" />
+                    </StackLayout>
+                </Frame>
+            </Grid>
+
+            <!-- ⚙️ Settings Overlay -->
+            <Grid x:Name="SettingsOverlay"
+                  BackgroundColor="#80000000"
+                  IsVisible="False"
+                  VerticalOptions="FillAndExpand"
+                  HorizontalOptions="FillAndExpand">
+
+                <Frame BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
+                       CornerRadius="12"
+                       Padding="20"
+                       HasShadow="True"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center"
+                       WidthRequest="300">
+
+                    <StackLayout Spacing="20">
+
+                        <Label Text="Einstellungen"
+                               FontSize="Medium"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"
+                               TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+                        <!-- Baustellen -->
+                        <StackLayout x:Name="RowBaustellen" Orientation="Horizontal" Spacing="10">
+                            <Label Text="Schotter / Pflastersteine vermeiden"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                            <Switch x:Name="SwitchBaustellen" HorizontalOptions="EndAndExpand" />
+                        </StackLayout>
+
+                        <!-- Sitzgelegenheiten -->
+                        <StackLayout x:Name="RowSitzgelegenheiten" Orientation="Horizontal" Spacing="10">
+                            <Label Text="Sitzgelegenheiten berücksichtigen"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                            <Switch x:Name="SwitchSitzgelegenheiten" HorizontalOptions="EndAndExpand" />
+                        </StackLayout>
+
+                        <!-- Toiletten -->
+                        <StackLayout x:Name="RowToiletten" Orientation="Horizontal" Spacing="10">
+                            <Label Text="Toiletten berücksichtigen"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                            <Switch x:Name="SwitchToiletten" HorizontalOptions="EndAndExpand" />
+                        </StackLayout>
+
+                        <!-- Unterstände -->
+                        <StackLayout x:Name="RowUnterstaende" Orientation="Horizontal" Spacing="10">
+                            <Label Text="Unterstände berücksichtigen"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                            <Switch x:Name="SwitchUnterstaende" HorizontalOptions="EndAndExpand" />
+                        </StackLayout>
+
+                        <!-- Buttons -->
+                        <StackLayout Orientation="Horizontal" Spacing="20" HorizontalOptions="Center">
+                            <Button Text="Speichern"
+                                    BackgroundColor="#4CAF50"
+                                    TextColor="White"
+                                    Clicked="OnSaveSettingsClicked"
+                                    CornerRadius="8"
+                                    WidthRequest="120"/>
+
+                            <Button Text="Abbrechen"
+                                    BackgroundColor="#E57373"
+                                    TextColor="White"
+                                    Clicked="OnCancelSettingsClicked"
+                                    CornerRadius="8"
+                                    WidthRequest="120"/>
+                        </StackLayout>
+                    </StackLayout>
+                </Frame>
+            </Grid>
+
+            <!-- Standortabfrage -->
+            <Grid x:Name="LocationPromptOverlay"
+                  BackgroundColor="#80000000"
+                  IsVisible="False"
+                  VerticalOptions="FillAndExpand"
+                  HorizontalOptions="FillAndExpand">
+                <Frame BackgroundColor="White"
+                       Padding="25"
+                       HasShadow="True"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center"
+                       WidthRequest="290">
+                    <StackLayout Spacing="25">
+                        <Label Text="Aktuellen Standort als Startadresse verwenden?"
+                               FontSize="Medium"
+                               TextColor="Black"
+                               HorizontalTextAlignment="Center" />
+                        <StackLayout Orientation="Horizontal"
+                                     HorizontalOptions="Center"
+                                     Spacing="20">
+                            <Button Text="Ja"
+                                    BackgroundColor="#5B7C77"
+                                    TextColor="White"
+                                    CornerRadius="5"
+                                    FontAttributes="Bold"
+                                    FontSize="Medium"
+                                    WidthRequest="100"
+                                    Clicked="OnLocationYesClicked" />
+                            <Button Text="Nein"
+                                    BackgroundColor="#5B7C77"
+                                    TextColor="White"
+                                    CornerRadius="5"
+                                    FontAttributes="Bold"
+                                    FontSize="Medium"
+                                    WidthRequest="100"
+                                    Clicked="OnLocationNoClicked" />
+                        </StackLayout>
+                    </StackLayout>
+                </Frame>
+            </Grid>
+        </Grid>
+
+        <!-- 🧭 POI-Buttons + Navigation -->
+        <StackLayout Grid.Row="3"
+                     Padding="10"
+                     Spacing="20">
+
+            <!-- Route Infos -->
+            <StackLayout x:Name="RouteInfoPanel"
+                         Orientation="Horizontal"
+                         HorizontalOptions="FillAndExpand"
+                         Spacing="10"
+                         IsVisible="False"
+                         Padding="8"
+                         BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2c2c2c}"
+                         Opacity="0.92">
+
+                <StackLayout Orientation="Horizontal" Spacing="10" Margin="0,0,0,0" VerticalOptions="Center">
+                    <Label x:Name="InfonLabel"
+                           Text="Ihre Route:"
+                           FontSize="16"
+                           TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                           VerticalOptions="Center" />
+                </StackLayout>
+
+                <!-- Entfernung -->
+                <StackLayout Orientation="Horizontal" Spacing="5" VerticalOptions="Center">
+                    <Image Source="{AppThemeBinding Light=distance_icon_dark.png, Dark=distance_icon_white.png}"
+                           WidthRequest="20"
+                           HeightRequest="20" />
+                    <Label x:Name="RouteDistanceLabel"
+                           Text="-- m,"
+                           FontSize="16"
+                           TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                           VerticalOptions="Center" />
+                </StackLayout>
+
+                <!-- Dauer -->
+                <StackLayout Orientation="Horizontal" Spacing="5" VerticalOptions="Center">
+                    <Image Source="{AppThemeBinding Light=time_icon_dark.png, Dark=time_icon_white.png}"
+                           WidthRequest="20"
+                           HeightRequest="20" />
+                    <Label x:Name="RouteDurationLabel"
+                           Text="-- Min."
+                           FontSize="16"
+                           TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                           VerticalOptions="Center" />
+                </StackLayout>
+            </StackLayout>
+
+            <!-- POI Buttons -->
+            <StackLayout x:Name="PoiButtonPanel"
+                         Orientation="Horizontal"
+                         HorizontalOptions="Center"
+                         Spacing="15"
+                         IsVisible="False">
+
+                <Button Text="Toilette"
+                        x:Name="PoiButton1"
+                        BackgroundColor="#E0E0E0"
+                        TextColor="Black"
+                        CornerRadius="5"
+                        FontAttributes="Bold"
+                        WidthRequest="100"
+                        FontSize="15"
+                        Clicked="OnPoiButtonClicked" />
+                <Button Text="Bank"
+                        x:Name="PoiButton2"
+                        BackgroundColor="#E0E0E0"
+                        TextColor="Black"
+                        CornerRadius="5"
+                        FontAttributes="Bold"
+                        WidthRequest="100"
+                        FontSize="15"
+                        Clicked="OnPoiButtonClicked" />
+                <Button Text="Unterstand / Schatten"
+                        x:Name="PoiButton3"
+                        BackgroundColor="#E0E0E0"
+                        TextColor="Black"
+                        CornerRadius="5"
+                        FontAttributes="Bold"
+                        WidthRequest="100"
+                        FontSize="12"
+                        Clicked="OnPoiButtonClicked" />
+            </StackLayout>
+
+            <!-- Navigation Button -->
+            <Button Text="Navigation starten"
+                    x:Name="CalculateRouteButton"
+                    BackgroundColor="#4CAF50"
+                    TextColor="White"
+                    CornerRadius="5"
+                    Clicked="OnCalculateRouteClicked" />
+        </StackLayout>
+    </Grid>
+</ContentPage>
