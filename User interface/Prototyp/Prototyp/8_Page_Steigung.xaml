@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Prototyp.Controls"
+             x:Class="Prototyp._8_Page_Steigung"
+             BackgroundColor="White">
+
+    <ContentPage.Content>
+        <Grid>
+
+            <!-- Hauptinhalt -->
+            <StackLayout Padding="20" Spacing="15">
+                <Label Text="Möchten Sie Steigungen und Bergauf vermeiden?"
+                   FontAttributes="Bold"
+                   HorizontalTextAlignment="Center"
+                   FontSize="Large"
+                   TextColor="#1E2D2B" />
+
+                <StackLayout Padding="20" Spacing="25">
+
+                    <!-- Steigung nicht drin =  1 -> Hürde/Hindernis sind nicht in route -->
+                    <controls:NoCapsButton Text="Ja, ich möchte Steigungen und Bergauf vermeiden"
+                                       Clicked="OnSlopeOptionClicked"
+                                       x:Name="SlopeOption1"
+                                       BackgroundColor="#5B7C77"
+                                       TextColor="White"
+                                       CornerRadius="12"
+                                       FontAttributes="Bold"
+                                       FontSize="Medium"
+                                       HeightRequest="100"
+                                       Padding="20,10" />
+
+                    <!-- Steigung drin = , 0-> Hürde können  in route sein -->
+                    <controls:NoCapsButton Text="Nein, Steigungen und Bergauf sind kein Problem."
+                                       Clicked="OnSlopeOptionClicked"
+                                       x:Name="SlopeOption2"
+                                       BackgroundColor="#5B7C77"
+                                       TextColor="White"
+                                       CornerRadius="12"
+                                       FontAttributes="Bold"
+                                       FontSize="Medium"
+                                       HeightRequest="100"
+                                       Padding="20,10" />
+                </StackLayout>
+            </StackLayout>
+
+            <!-- Lade-Overlay -->
+            <Grid x:Name="LoadingOverlay"
+              BackgroundColor="#80000000"
+              IsVisible="False"
+              VerticalOptions="FillAndExpand"
+              HorizontalOptions="FillAndExpand">
+
+                <!-- Weißes Rechteck mit abgerundeten Ecken -->
+                <Frame BackgroundColor="White"
+                   CornerRadius="12"
+                   Padding="25"
+                   HasShadow="True"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center">
+
+                    <StackLayout Spacing="15"
+                             VerticalOptions="Center"
+                             HorizontalOptions="Center">
+
+                        <ActivityIndicator IsRunning="True"
+                                       Color="Green"
+                                       WidthRequest="60"
+                                       HeightRequest="60" />
+
+                        <Label Text="Lade Karte..."
+                           TextColor="Black"
+                           FontSize="Medium"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center" />
+                    </StackLayout>
+                </Frame>
+            </Grid>
+
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>
